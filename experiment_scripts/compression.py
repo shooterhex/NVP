@@ -132,7 +132,9 @@ with open(opt.config, 'r') as f:
     config = json.load(f)
 
 # Define the model.
-model = modules.NVP(type='nvp', in_features=2, out_features=3, encoding_config=config["nvp"])
+# YUV 400
+model = modules.NVP(type='nvp', in_features=2, out_features=1, encoding_config=config["nvp"])
+# model = modules.NVP(type='nvp', in_features=2, out_features=3, encoding_config=config["nvp"])
 model.cuda()
 
 config = config["nvp"]

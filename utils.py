@@ -66,7 +66,9 @@ def write_video_time_summary(vid_dataset, model, model_input, gt, writer, total_
         temporal_steps = torch.cat(temporal_steps, dim=0)
         temporal_coords = torch.cat(temporal_coords, dim=0)
 
-        output = torch.zeros((len(frames), tot, 3))
+        # YUV 400
+        output = torch.zeros((len(frames), tot, 1))
+        # output = torch.zeros((len(frames), tot, 3))
         split = int(tot / Nslice)
         for i in range(Nslice):
             split_spatial = spatial_coords[:, i*split:(i+1)*split, :]
@@ -79,16 +81,23 @@ def write_video_time_summary(vid_dataset, model, model_input, gt, writer, total_
             
             output[:, i*split:(i+1)*split, :] =  pred.cpu()
 
-    pred_vid = output.view(len(frames), resolution[0], resolution[1], 3)
+    # YUV 400
+    pred_vid = output.view(len(frames), resolution[0], resolution[1])
+    # pred_vid = output.view(len(frames), resolution[0], resolution[1], 3)
     pred_vid = pred_vid.cpu()
     pred_vid = (pred_vid+1)/2
     pred_vid = torch.clamp(pred_vid, 0, 1)
-    gt_vid = torch.Tensor(vid_dataset.vid[frames, :, :, :]/255.)
+    # YUV 400
+    gt_vid = torch.Tensor(vid_dataset.vid[frames, :, :]/255.)
+    # gt_vid = torch.Tensor(vid_dataset.vid[frames, :, :, :]/255.)
     psnr = 10*torch.log10(1 / torch.mean((gt_vid - pred_vid)**2))
     
+    # YUV 400
     pred_vid = 2*pred_vid-1
+    pred_vid = output.view(len(frames), resolution[0], resolution[1], 1)
     pred_vid = pred_vid.permute(0, 3, 1, 2)
     gt_vid = 2*gt_vid-1
+    gt_vid = output.view(len(frames), resolution[0], resolution[1], 1)
     gt_vid = gt_vid.permute(0, 3, 1, 2)
 
     output_vs_gt = torch.cat((gt_vid, pred_vid), dim=-2)

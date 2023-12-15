@@ -157,7 +157,9 @@ with open(opt.config, 'r') as f:
     config = json.load(f)
 
 # Define the model.
-model = modules.NVP(type='nvp', in_features=2, out_features=3, encoding_config=config["nvp"])
+# YUV 400
+model = modules.NVP(type='nvp', in_features=2, out_features=1, encoding_config=config["nvp"])
+# model = modules.NVP(type='nvp', in_features=2, out_features=3, encoding_config=config["nvp"])
 model.cuda()
 
 config = config["nvp"]
@@ -248,19 +250,26 @@ for f in pbar:
 
         # save image
         if opt.save:
-            img = pred[0].reshape(resolution[0], resolution[1], 3).permute(2, 0, 1)
+            # YUV 400
+            img = pred[0].reshape(resolution[0], resolution[1])
+            # img = pred[0].reshape(resolution[0], resolution[1], 3).permute(2, 0, 1)
             img = (img+1)/2
             img = torch.clamp(img, 0, 1)
             save_image(img, os.path.join(results_dir, f"f{str(f).zfill(5)}.png")) #[c, h, w]
                     
 
-        pred = pred[0].reshape(resolution[0], resolution[1], 3).permute(2, 0, 1)
+        # YUV 400
+        pred = pred[0].reshape(resolution[0], resolution[1])
+        # pred = pred[0].reshape(resolution[0], resolution[1], 3).permute(2, 0, 1)
         pred = (pred+1)/2
         pred = torch.clamp(pred, 0, 1)
         img1 = pred.unsqueeze(0).cuda()
 
-        gt = torch.Tensor(gt_frames[f, :, :, :]/255.)
-        img2 = gt.unsqueeze(0).permute(0, 3, 1, 2).cuda()
+        # YUV 400
+        gt = torch.Tensor(gt_frames[f, :, :]/255.)
+        img2 = gt.unsqueeze(0).cuda()
+        # gt = torch.Tensor(gt_frames[f, :, :, :]/255.)
+        # img2 = gt.unsqueeze(0).permute(0, 3, 1, 2).cuda()
 
         psnr = 10*torch.log10(1/torch.mean((img1-img2)**2))
         psnrs.append(psnr.item())

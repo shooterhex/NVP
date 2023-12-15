@@ -54,7 +54,9 @@ class VideoTime(Dataset):
             tmp_img  = np.array(tmp_img)
             tmp_shape = tmp_img.shape
 
-            self.vid = np.zeros((self.split_num, tmp_shape[0], tmp_shape[1], tmp_shape[2]), dtype=np.uint8)
+            #YUV 400
+            self.vid = np.zeros((self.split_num, tmp_shape[0], tmp_shape[1]), dtype=np.uint8)
+            # self.vid = np.zeros((self.split_num, tmp_shape[0], tmp_shape[1], tmp_shape[2]), dtype=np.uint8)
             for idx, f in enumerate(files):
                 img = Image.open(f)
                 img = np.array(img)
@@ -62,10 +64,12 @@ class VideoTime(Dataset):
                 
         print("[i] Finished")
 
-        self.shape = self.vid.shape[1:-1]
+        self.shape = self.vid.shape[1:]
+        # self.shape = self.vid.shape[1:-1]
         
         self.nframes = self.vid.shape[0]
-        self.channels = self.vid.shape[-1]
+        self.channels = 1
+        # self.channels = self.vid.shape[-1]
 
     def __len__(self):
         return 1

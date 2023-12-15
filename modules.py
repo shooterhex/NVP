@@ -79,6 +79,8 @@ class NVP(nn.Module):
         
         # modulation latent
         output = self.wrapper(coords=timesteps, latent=embedding)
-        output = output.reshape((b, t, 3))
+        # YUV 400
+        output = output.reshape((b, t, 1))
+        # output = output.reshape((b, t, 3))
 
         return {'model_out': output}

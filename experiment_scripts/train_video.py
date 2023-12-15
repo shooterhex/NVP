@@ -43,7 +43,9 @@ video_path = opt.dataset
 
 
 # Define the model.
-model = modules.NVP(type='nvp', out_features=3, encoding_config=config["nvp"])
+#YUV 400
+model = modules.NVP(type='nvp', out_features=1, encoding_config=config["nvp"])
+# model = modules.NVP(type='nvp', out_features=3, encoding_config=config["nvp"])
 model.cuda()
 
 vid_dataset = dataio.VideoTime(video_path, split_num=opt.num_frames)

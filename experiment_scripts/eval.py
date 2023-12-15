@@ -145,7 +145,8 @@ with open(opt.config, 'r') as f:
     config = json.load(f)
 
 # Define the model.
-model = modules.NVP(type='nvp', in_features=2, out_features=3, encoding_config=config["nvp"])
+# YUV 400
+model = modules.NVP(type='nvp', in_features=2, out_features=1, encoding_config=config["nvp"])
 model.cuda()
 
 config = config["nvp"]
@@ -153,7 +154,7 @@ config = config["nvp"]
 # Model Loading
 root_path = os.path.join(opt.logging_root, opt.experiment_name)
 
-path = os.path.join(root_path, 'checkpoints', "model_best.pth")
+path = os.path.join(root_path, 'checkpoints', "model_final.pth")
 checkpoint = torch.load(path)        
 print("Epoch: ", checkpoint["epoch"])
 # assert checkpoint["epoch"] <= 7676
@@ -230,7 +231,9 @@ for f in pbar:
 
         all_coords = torch.cat((temporal_coord.unsqueeze(2), spatial_coord), dim=2)
 
-        output = torch.zeros((1, total_res, 3))
+        # YUV 400
+        output = torch.zeros((1, total_res, 1))
+        # output = torch.zeros((1, total_res, 3))
         Nslice = 100
         split = int(total_res / Nslice)
         for i in range(Nslice):
@@ -239,8 +242,11 @@ for f in pbar:
             pred = model({'all_coords': split_all_coords, "temporal_steps": split_step}, temporal_interp=temporal_interp)['model_out']
             output[:, i*split:(i+1)*split, :] =  pred.cpu()
         
-        output = output.view(1, resolution[0], resolution[1], 3)
-        img = output[0].permute(2, 0, 1)
+        # YUV 400
+        output = output.view(1, resolution[0], resolution[1])
+        img = output[0]
+        # output = output.view(1, resolution[0], resolution[1], 3)
+        # img = output[0].permute(2, 0, 1)
         img = (img+1)/2
         img = torch.clamp(img, 0, 1)
 
@@ -250,8 +256,11 @@ for f in pbar:
         if opt.s_interp == -1 and opt.t_interp == -1:
             img1 = img.unsqueeze(0).cuda()
 
-            gt = torch.Tensor(gt_frames[f, :, :, :]/255.)
-            img2 = gt.unsqueeze(0).permute(0, 3, 1, 2).cuda()
+            # YUV 400
+            gt = torch.Tensor(gt_frames[f, :, :]/255.)
+            img2 = gt.unsqueeze(0).cuda()
+            # gt = torch.Tensor(gt_frames[f, :, :, :]/255.)
+            # img2 = gt.unsqueeze(0).permute(0, 3, 1, 2).cuda()
 
             psnr = 10*torch.log10(1/torch.mean((img1-img2)**2))
             psnrs.append(psnr.item())
